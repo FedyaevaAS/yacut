@@ -1,6 +1,7 @@
 import re
 
 from flask import jsonify, request
+from http import HTTPStatus
 from urllib.parse import urljoin
 
 from . import app, db
@@ -15,15 +16,16 @@ def create_id():
     request_URL = request.url_root
     if data is None:
         raise InvalidAPIUsage('Отсутствует тело запроса')
-    elif 'url' not in data:
+    if 'url' not in data:
         raise InvalidAPIUsage('"url" является обязательным полем!')
     condition = ('custom_id' in data and
                  data['custom_id'] is not None and
                  len(data['custom_id']) > 0)
     if condition:
         custom_id = data['custom_id']
+        reg_exp = r'^[a-zA-Z0-9]+$'
         condition_first = (len(custom_id) > 16 or not
-                           re.match(r'^[a-zA-Z0-9]+$', custom_id))
+                           re.match(reg_exp, custom_id))
         condition_second = URL_map.query.filter_by(
             short=custom_id
         ).first() is not None
@@ -43,12 +45,12 @@ def create_id():
     db.session.commit()
     return jsonify(
         {'url': original, 'short_link': urljoin(request_URL, custom_id)}
-    ), 201
+    ), HTTPStatus.CREATED
 
 
 @app.route('/api/id/<string:short_id>/', methods=['GET'])
 def get_url(short_id):
     url = URL_map.query.filter_by(short=short_id).first()
     if url is None:
-        raise InvalidAPIUsage('Указанный id не найден', 404)
-    return jsonify({'url': url.original}), 200
+        raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
+    return jsonify({'url': url.original}), HTTPStatus.OK

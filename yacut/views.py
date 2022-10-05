@@ -19,24 +19,25 @@ def get_unique_short_id():
 def index_view():
     form = URLForm()
     request_URL = request.url
-    if form.validate_on_submit():
-        short = form.custom_id.data
-        if short:
-            if URL_map.query.filter_by(short=short).first():
-                flash(f'Имя {short} уже занято!', 'error-message')
-                return render_template('index.html', form=form)
-        else:
+    if not form.validate_on_submit():
+        return render_template('index.html', form=form)
+    short = form.custom_id.data
+    if short:
+        if URL_map.query.filter_by(short=short).first():
+            flash(f'Имя {short} уже занято!', 'error-message')
+            return render_template('index.html', form=form)
+    else:
+        short = get_unique_short_id()
+        while URL_map.query.filter_by(short=short).first():
             short = get_unique_short_id()
-            while URL_map.query.filter_by(short=short).first():
-                short = get_unique_short_id()
-        url_map = URL_map(
-            original=form.original_link.data,
-            short=short
-        )
-        db.session.add(url_map)
-        db.session.commit()
-        short_URL = urljoin(request_URL, short)
-        flash(f'{short_URL}', 'short_link-message')
+    url_map = URL_map(
+        original=form.original_link.data,
+        short=short
+    )
+    db.session.add(url_map)
+    db.session.commit()
+    short_URL = urljoin(request_URL, short)
+    flash(f'{short_URL}', 'short_link-message')
     return render_template('index.html', form=form)
 
 
