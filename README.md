@@ -34,12 +34,12 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 Создайте файл .env в корневой директории со следующим содержимым:
-    ```
-    FLASK_APP=
-    FLASK_ENV=
-    DATABASE_URI=
-    SECRET_KEY=
-    ```
+```
+FLASK_APP=
+FLASK_ENV=
+DATABASE_URI=
+SECRET_KEY=
+```
 Запустите проект
 ```
 flask run
